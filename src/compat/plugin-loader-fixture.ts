@@ -1,5 +1,6 @@
-import { cp, mkdir } from "fs/promises"
+import { mkdir, readFile, writeFile } from "fs/promises"
 import { dirname, join, resolve } from "path"
+import { renderInstalledAutoresearchAgent } from "./installed-agent"
 
 export type DefaultExportModule = {
   default?: unknown
@@ -88,6 +89,6 @@ export async function copyAutoresearchAgent(configDir: string) {
   const source = resolve("agent/autoresearch.md")
   const destination = join(configDir, "agent", "autoresearch.md")
   await mkdir(dirname(destination), { recursive: true })
-  await cp(source, destination)
+  await writeFile(destination, renderInstalledAutoresearchAgent(await readFile(source, "utf-8")))
   return destination
 }
