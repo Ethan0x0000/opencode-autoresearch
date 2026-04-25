@@ -1,3 +1,6 @@
+/// <reference types="bun-types" />
+/// <reference path="./bun-test.d.ts" />
+
 import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "fs"
 import { readdir } from "fs/promises"
@@ -16,6 +19,21 @@ function clock(...timestamps: string[]) {
 
 async function corruptFiles(dir: string) {
   return (await readdir(dir)).filter((entry) => entry.includes(".corrupt."))
+}
+
+async function expectRejects(promise: Promise<unknown>, pattern: RegExp) {
+  let rejection: unknown
+  try {
+    await promise
+  } catch (error) {
+    rejection = error
+  }
+  if (rejection === undefined) throw new Error("Expected promise to reject")
+  expect(errorMessage(rejection)).toMatch(pattern)
+}
+
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error)
 }
 
 describe("plugin-owned session state", () => {
@@ -108,6 +126,35 @@ describe("plugin-owned session state", () => {
     expect(second.experiments.map((experiment) => experiment.id)).toEqual(["exp-1"])
   })
 
+  test("repeated experiment ids update the existing entry instead of duplicating it", async () => {
+    const store = createSessionStore({ baseDir, now: clock(createdAt, updatedAt, "2026-04-25T00:02:00.000Z") })
+    await store.create({ sessionId: "repeat-experiment", goal: "Retry a run safely" })
+    await store.appendExperiment("repeat-experiment", {
+      id: "exp-1",
+      run: 1,
+      hypothesis: "First packet.",
+      status: "pending",
+    })
+
+    const repeated = await store.appendExperiment("repeat-experiment", {
+      id: "exp-1",
+      run: 1,
+      hypothesis: "First packet with result.",
+      status: "keep",
+      metric: { name: "quality_gap", value: 0, direction: "lower" },
+    })
+
+    expect(repeated.experiments).toHaveLength(1)
+    expect(repeated.experiments[0]).toMatchObject({
+      id: "exp-1",
+      status: "keep",
+      hypothesis: "First packet with result.",
+      createdAt: updatedAt,
+      updatedAt: "2026-04-25T00:02:00.000Z",
+    })
+    expect(repeated.metrics).toEqual([{ name: "quality_gap", value: 0, direction: "lower", sourceExperimentId: "exp-1" }])
+  })
+
   test("quarantines corrupt JSON and reports recovery without silently discarding it", async () => {
     const store = createSessionStore({ baseDir, now: clock(createdAt) })
     const path = store.sessionPath("corrupt")
@@ -146,7 +193,7 @@ describe("plugin-owned session state", () => {
       "utf-8",
     )
 
-    await expect(store.read("future")).rejects.toThrow(/Unsupported future session schema version 2/)
+    await expectRejects(store.read("future"), /Unsupported future session schema version 2/)
     expect(existsSync(path)).toBe(true)
     expect(JSON.parse(readFileSync(path, "utf-8")).schemaVersion).toBe(SESSION_SCHEMA_VERSION + 1)
     expect(await corruptFiles(baseDir)).toHaveLength(0)
@@ -156,7 +203,7 @@ describe("plugin-owned session state", () => {
     const store = createSessionStore({ baseDir, now: clock(createdAt) })
     chmodSync(baseDir, 0o555)
 
-    await expect(store.create({ sessionId: "read-only", goal: "Cannot write" })).rejects.toThrow(/Unable to write session state/)
+    await expectRejects(store.create({ sessionId: "read-only", goal: "Cannot write" }), /Unable to write session state/)
     expect(existsSync(store.sessionPath("read-only"))).toBe(false)
   })
 
