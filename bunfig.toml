@@ -1,0 +1,5 @@
+[test]
+preload = ["./test-setup.ts"]
+root = "."
+path_ignore_patterns = ["refer/**"]
+

@@ -1,0 +1,34 @@
+{
+  "name": "opencode-autoresearch",
+  "version": "0.1.0",
+  "description": "Opencode plugin for autonomous research workflows",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist",
+    "agent"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target bun --format esm && tsc --emitDeclarationOnly && bun build src/cli.ts --outdir dist --target bun --format esm",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test ./tests --path-ignore-patterns 'refer/**'",
+    "check": "bun run typecheck && bun run build && bun run test"
+  },
+  "keywords": [
+    "opencode",
+    "plugin",
+    "autoresearch"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "bun-types": "latest"
+  }
+}
