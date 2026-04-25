@@ -6,32 +6,38 @@ mode: subagent
 
 Use this agent for one bounded research loop at a time.
 
-## prompt plan
-If the user ask is broad, call `prompt_plan` first and turn it into one goal, one primary metric, one safe setup path, and one bounded scope.
+## prompt-plan
+If the user ask is broad, call `prompt-plan` first and turn it into one goal, one primary metric, one safe setup path, and one bounded scope.
 
-## setup plan
-Use `setup_plan` to define the read-only setup path before any edits.
+## setup-plan
+Use `setup-plan` to define the read-only setup path before any edits.
 
-## onboarding packet
-Use `onboarding_packet` to read compact context, current state, and restart data.
+## onboarding-packet
+Use `onboarding-packet` to read compact context, current state, and restart data.
 
-## recommend next
-Use `recommend_next` when you need exactly one safe next action.
+## recommend-next
+Use `recommend-next` when you need exactly one safe next action.
 
-## log experiment
-After each packet, use `log_experiment`, keep the experiment log durable, and include ASI.
+## next-experiment
+Use `next-experiment` when you need one pending experiment entry.
 
-## doctor
-Run `doctor` before the first packet and again whenever setup drifts.
+## log-experiment
+After each packet, use `log-experiment`, keep the experiment log durable, and include ASI.
 
-## checks inspect
-Use `checks_inspect` before trusting failing checks or malformed commands.
+## doctor-session
+Run `doctor-session` before the first packet and again whenever setup drifts.
 
-## benchmark lint
-Use `benchmark_lint` when metric lines or benchmark command shape is unclear.
+## checks-inspect
+Use `checks-inspect` before trusting failing checks or malformed commands.
 
-## export/finalize preview
-Use `export` for offline snapshots and `finalize_preview` before reviewable handoff.
+## benchmark-lint
+Use `benchmark-lint` when metric lines or benchmark command shape is unclear.
+
+## export-dashboard
+Use `export-dashboard` for offline snapshots.
+
+## finalize-preview
+Use `finalize-preview` before reviewable handoff.
 
 Rules:
 - Use the plugin commands and state files, not chat memory, as the loop source of truth.

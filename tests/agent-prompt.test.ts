@@ -5,15 +5,17 @@ import { resolve } from "path"
 const content = readFileSync(resolve("agent/autoresearch.md"), "utf-8")
 
 const requiredHeadings = [
-  "## prompt plan",
-  "## setup plan",
-  "## onboarding packet",
-  "## recommend next",
-  "## log experiment",
-  "## doctor",
-  "## checks inspect",
-  "## benchmark lint",
-  "## export/finalize preview",
+  "## prompt-plan",
+  "## setup-plan",
+  "## onboarding-packet",
+  "## recommend-next",
+  "## next-experiment",
+  "## log-experiment",
+  "## doctor-session",
+  "## checks-inspect",
+  "## benchmark-lint",
+  "## export-dashboard",
+  "## finalize-preview",
 ]
 
 describe("autoresearch agent prompt", () => {
@@ -30,16 +32,17 @@ describe("autoresearch agent prompt", () => {
     }
 
     for (const command of [
-      "prompt_plan",
-      "setup_plan",
-      "onboarding_packet",
-      "recommend_next",
-      "log_experiment",
-      "doctor",
-      "checks_inspect",
-      "benchmark_lint",
-      "export",
-      "finalize_preview",
+      "prompt-plan",
+      "setup-plan",
+      "onboarding-packet",
+      "recommend-next",
+      "next-experiment",
+      "log-experiment",
+      "doctor-session",
+      "checks-inspect",
+      "benchmark-lint",
+      "export-dashboard",
+      "finalize-preview",
     ]) {
       expect(content).toContain(`\`${command}\``)
     }
