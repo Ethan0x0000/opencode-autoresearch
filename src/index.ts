@@ -16,7 +16,6 @@ export type AgentConfig = {
   mode?: "subagent" | "primary" | "all"
   description?: string
   prompt?: string
-  hidden?: boolean
 }
 
 export type OpenCodeConfig = {
@@ -38,7 +37,6 @@ export const pluginModule = {
     async config(config) {
       config.agent ??= {}
       config.agent[AUTORESEARCH_RUNTIME_NAME] = AUTORESEARCH_AGENT
-      config.agent[AUTORESEARCH_VISIBLE_NAME] = AUTORESEARCH_AGENT_ALIAS
     },
   }),
 } satisfies PluginModule
@@ -47,7 +45,7 @@ export default pluginModule
 
 export const AUTORESEARCH_AGENT = {
   name: AUTORESEARCH_RUNTIME_NAME,
-  mode: "all",
+  mode: "primary",
   description: "Strong autonomous research agent for bounded, evidence-backed OpenCode research loops.",
   prompt: `You are autoresearch, a strong research agent for OpenCode.
 
@@ -69,10 +67,4 @@ Rules:
 - Do not promise browser dashboard, live server, TUI, MCP, or full codex-autoresearch parity.
 - Preserve autoresearch state, scratchpads, logs, and experiment records.
 - Summarize findings with source-backed evidence and stop when the bounded packet is complete.`,
-} satisfies AgentConfig
-
-export const AUTORESEARCH_AGENT_ALIAS = {
-  ...AUTORESEARCH_AGENT,
-  name: AUTORESEARCH_RUNTIME_NAME,
-  hidden: true,
 } satisfies AgentConfig

@@ -27,18 +27,16 @@ describe("plugin loading contract", () => {
 
     await (hooks as { config: (input: typeof config) => Promise<void> }).config(config)
 
+    expect(Object.keys(config.agent ?? {})).toEqual([AUTORESEARCH_RUNTIME_NAME])
     expect(config.agent?.[AUTORESEARCH_RUNTIME_NAME]).toMatchObject({
       name: AUTORESEARCH_RUNTIME_NAME,
-      mode: "all",
+      mode: "primary",
       description: "Strong autonomous research agent for bounded, evidence-backed OpenCode research loops.",
     })
     expect(config.agent?.[AUTORESEARCH_RUNTIME_NAME]?.prompt).toContain("strong research agent")
     expect(config.agent?.[AUTORESEARCH_RUNTIME_NAME]?.prompt).toContain("opencode-autoresearch")
-    expect(config.agent?.[AUTORESEARCH_VISIBLE_NAME]).toMatchObject({
-      name: AUTORESEARCH_RUNTIME_NAME,
-      mode: "all",
-      hidden: true,
-    })
+    expect(config.agent?.[AUTORESEARCH_VISIBLE_NAME]).toBeUndefined()
+    expect(config.agent?.[AUTORESEARCH_RUNTIME_NAME]?.hidden).toBeUndefined()
   })
 
   test("rejects missing default export", () => {

@@ -39,6 +39,8 @@ describe("README contract", () => {
 
   test("documents plugin registration and binary surface", () => {
     expect(readme).toContain("plugin-injected `autoresearch` agent")
+    expect(readme).toContain("single primary-only `autoresearch` agent")
+    expect(readme).toContain("does not add a hidden plain alias or subagent-capable `mode: all` entry")
     expect(readme).toContain("The package also exposes the `opencode-autoresearch` binary")
     expect(readme).toContain("For local development, point OpenCode at the built package directory instead")
     expect(readme).toContain("/absolute/path/to/opencode-autoresearch")

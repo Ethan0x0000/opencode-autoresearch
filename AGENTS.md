@@ -11,7 +11,7 @@
 - `--state-dir <dir>` changes that base directory.
 - Session ids are safe to use in paths, with `<state-dir>/<session-id>.json` as the stored file.
 - Enable the plugin through `opencode.json` with `"plugin": ["opencode-autoresearch"]`; disable it by removing that entry.
-- The plugin config hook injects the `autoresearch` agent with five escaped `\u200B` prefixes and `mode: all` so it can appear as a primary agent while remaining usable as a subagent; it also keeps a hidden plain `autoresearch` alias for CLI selection.
+- The plugin config hook injects exactly one primary-only `autoresearch` agent. Keep both the config key and runtime `name` prefixed with five escaped `\u200B` prefixes for OpenCode/oh-my-openagent selection and list ordering. Do not add a hidden alias or `mode: all` unless the user explicitly asks for subagent use.
 
 ## Invisible-byte rule
 - Document zero width prefixes only as escaped `\u200B` text.

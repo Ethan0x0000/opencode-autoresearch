@@ -11,7 +11,6 @@ export type AgentConfig = {
     mode?: "subagent" | "primary" | "all";
     description?: string;
     prompt?: string;
-    hidden?: boolean;
 };
 export type OpenCodeConfig = {
     agent?: Record<string, AgentConfig>;
@@ -32,14 +31,7 @@ export declare const pluginModule: {
 export default pluginModule;
 export declare const AUTORESEARCH_AGENT: {
     name: string;
-    mode: "all";
-    description: string;
-    prompt: string;
-};
-export declare const AUTORESEARCH_AGENT_ALIAS: {
-    name: string;
-    hidden: true;
-    mode: "all";
+    mode: "primary";
     description: string;
     prompt: string;
 };

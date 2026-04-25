@@ -43,7 +43,7 @@ For local development, point OpenCode at the built package directory instead:
 }
 ```
 
-The plugin injects an `autoresearch` agent with `mode: all`, so OpenCode can list it as a primary agent while still allowing subagent use. The package also exposes the `opencode-autoresearch` binary for durable state commands.
+The plugin injects a single primary-only `autoresearch` agent. It uses a five-prefix runtime key/name for OpenCode ordering and does not add a hidden plain alias or subagent-capable `mode: all` entry. The package also exposes the `opencode-autoresearch` binary for durable state commands.
 
 ## Local OpenCode config example
 

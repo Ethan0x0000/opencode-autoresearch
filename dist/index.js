@@ -14,14 +14,13 @@ var pluginModule = {
     async config(config) {
       config.agent ??= {};
       config.agent[AUTORESEARCH_RUNTIME_NAME] = AUTORESEARCH_AGENT;
-      config.agent[AUTORESEARCH_VISIBLE_NAME] = AUTORESEARCH_AGENT_ALIAS;
     }
   })
 };
 var src_default = pluginModule;
 var AUTORESEARCH_AGENT = {
   name: AUTORESEARCH_RUNTIME_NAME,
-  mode: "all",
+  mode: "primary",
   description: "Strong autonomous research agent for bounded, evidence-backed OpenCode research loops.",
   prompt: `You are autoresearch, a strong research agent for OpenCode.
 
@@ -44,16 +43,10 @@ Rules:
 - Preserve autoresearch state, scratchpads, logs, and experiment records.
 - Summarize findings with source-backed evidence and stop when the bounded packet is complete.`
 };
-var AUTORESEARCH_AGENT_ALIAS = {
-  ...AUTORESEARCH_AGENT,
-  name: AUTORESEARCH_RUNTIME_NAME,
-  hidden: true
-};
 export {
   pluginModule,
   src_default as default,
   PLUGIN_ID,
   AUTORESEARCH_RUNTIME_NAME,
-  AUTORESEARCH_AGENT_ALIAS,
   AUTORESEARCH_AGENT
 };
