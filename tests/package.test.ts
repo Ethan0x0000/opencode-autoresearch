@@ -27,13 +27,16 @@ describe("package scaffold", () => {
       expect(pkg.exports).toBeDefined()
     })
 
-    it("package.json files allowlist excludes refer/", () => {
+    it("package.json files allowlist ships only dist and excludes agent prompts", () => {
       const pkg = JSON.parse(readFileSync(resolve("package.json"), "utf-8"))
-      expect(pkg.files).toBeDefined()
-      expect(Array.isArray(pkg.files)).toBe(true)
-      expect(pkg.files).toContain("dist")
-      // refer/ should NOT be in the files list (excluded by omission)
+      expect(pkg.files).toEqual(["dist"])
+      expect(pkg.files.some((f: string) => f.includes("agent"))).toBe(false)
       expect(pkg.files.some((f: string) => f.includes("refer"))).toBe(false)
+    })
+
+    it("package.json exposes a binary for local CLI commands", () => {
+      const pkg = JSON.parse(readFileSync(resolve("package.json"), "utf-8"))
+      expect(pkg.bin).toEqual({ "opencode-autoresearch": "./dist/cli.js" })
     })
   })
 
@@ -78,7 +81,6 @@ describe("package scaffold", () => {
       const content = readFileSync(resolve("src/index.ts"), "utf-8")
       expect(content).not.toContain('from "../../refer')
       expect(content).not.toContain('from "../refer')
-      expect(content).not.toContain("refer/")
     })
 
     it("src/cli.ts does not import from refer/", () => {

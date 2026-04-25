@@ -29,22 +29,21 @@ describe("README contract", () => {
     expect(readme).toContain("not packaged")
     expect(readme).toContain("static snapshot only")
     expect(readme).toContain("does not start a browser UI or a live server")
-    expect(readme).toContain("mkdir -p ~/.config/opencode/agent")
-    expect(readme).toContain("bun dist/cli.js install-agent --config-dir ~/.config/opencode")
+    expect(readme).toContain('"plugin": ["opencode-autoresearch"]')
+    expect(readme).toContain("Disable it by removing `opencode-autoresearch` from the `plugin` array")
     expect(readme).toContain("bun run test")
     expect(readme).toContain("bun test tests/readme.test.ts")
     expect(readme).toContain("Plain `bun test` is the full-project hardening goal")
     expect(readme).toContain("recurse into `refer/` fixtures")
   })
 
-  test("documents the install-agent command and the fallback config-dir path", () => {
-    expect(readme).toContain("bun dist/cli.js install-agent --config-dir ~/.config/opencode")
-    expect(readme).toContain("bun dist/cli.js install-agent --config-dir <dir>")
-    expect(readme).toContain("Package-level OpenCode agent discovery from the package alone is not asserted by this repo")
-    expect(readme).toContain("fallback `install-agent --config-dir <dir>` path is tested and works regardless")
-    expect(readme).toContain("packaged source file keeps the plain `name: autoresearch` frontmatter")
-    expect(readme).toContain("installed fallback file keeps the plain `autoresearch.md` filename")
-    expect(readme).toContain("--force")
+  test("documents plugin registration and binary surface", () => {
+    expect(readme).toContain("plugin-injected `autoresearch` agent")
+    expect(readme).toContain("The package also exposes the `opencode-autoresearch` binary")
+    expect(readme).toContain("For local development, point OpenCode at the built package directory instead")
+    expect(readme).toContain("/absolute/path/to/opencode-autoresearch")
+    expect(readme).toContain("The supported enable path is the OpenCode `plugin` array")
+    expect(readme).toContain("The supported disable path is removing `opencode-autoresearch` from that array")
   })
 
   test("documents the zero width ordering strategy with escaped notation only", () => {
@@ -56,7 +55,6 @@ describe("README contract", () => {
 
   test("lists the shipped commands and local verification commands", () => {
     for (const command of [
-      "install-agent",
       "prompt-plan",
       "setup-plan",
       "onboarding-packet",

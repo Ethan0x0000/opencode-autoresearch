@@ -1,4 +1,6 @@
+#!/usr/bin/env bun
 // @bun
+
 // src/session/schema.ts
 var SESSION_SCHEMA_VERSION = 1;
 var SESSION_STATUSES = ["new", "setup", "running", "complete", "blocked"];
@@ -430,108 +432,6 @@ function dashboardMarkdown(snapshot) {
 `;
 }
 
-// src/commands/install-agent.ts
-import { constants } from "fs";
-import { access, lstat, mkdir as mkdir2, readFile, rename, rm, writeFile as writeFile2 } from "fs/promises";
-import { dirname, join as join2, resolve as resolve2 } from "path";
-
-// src/compat/zero-width.ts
-var ZERO_WIDTH_SPACE = "\u200B";
-var AUTORESEARCH_PREFIX_COUNT = 5;
-var AUTORESEARCH_SORT_PREFIX = ZERO_WIDTH_SPACE.repeat(AUTORESEARCH_PREFIX_COUNT);
-var AUTORESEARCH_VISIBLE_NAME = "autoresearch";
-
-// src/compat/installed-agent.ts
-var CANONICAL_NAME_LINE = `name: ${AUTORESEARCH_VISIBLE_NAME}`;
-var INSTALLED_NAME_LINE = `name: ${AUTORESEARCH_SORT_PREFIX}${AUTORESEARCH_VISIBLE_NAME}`;
-function renderInstalledAutoresearchAgent(packagedContent) {
-  const installedContent = packagedContent.replace(/^name: autoresearch$/m, INSTALLED_NAME_LINE);
-  if (installedContent === packagedContent) {
-    throw new Error(`Packaged agent asset missing canonical frontmatter line: ${CANONICAL_NAME_LINE}`);
-  }
-  return installedContent;
-}
-
-// src/commands/install-agent.ts
-var installAgentCommand = async (context) => {
-  const configDir = optionString(context.args, "config-dir");
-  if (configDir === undefined)
-    throw new Error("Missing required option: --config-dir");
-  const agentDir = join2(resolve2(configDir), "agent");
-  await rejectSymlink(resolve2(configDir));
-  await rejectSymlink(agentDir);
-  await mkdir2(agentDir, { recursive: true });
-  await rejectSymlink(agentDir);
-  const target = join2(agentDir, "autoresearch.md");
-  const targetState = await pathState(target);
-  if (targetState === "symlink")
-    throw new Error(`Refusing to write through symlink: ${target}`);
-  if (targetState === "directory")
-    throw new Error(`Refusing to overwrite directory: ${target}`);
-  if (targetState === "file" && !optionBoolean(context.args, "force")) {
-    throw new Error(`Agent already exists: ${target}
-Use --force to overwrite.`);
-  }
-  await copyAgentFile(target, targetState === "file");
-  return { ok: true, path: target, overwritten: targetState === "file" };
-};
-async function packagedAgentPath() {
-  const candidates = [
-    join2(import.meta.dir, "..", "agent", "autoresearch.md"),
-    join2(import.meta.dir, "..", "..", "agent", "autoresearch.md")
-  ];
-  for (const candidate of candidates) {
-    if (await pathExists(candidate))
-      return candidate;
-  }
-  throw new Error("Packaged agent asset not found: agent/autoresearch.md");
-}
-async function copyAgentFile(target, overwrite) {
-  const source = renderInstalledAutoresearchAgent(await readFile(await packagedAgentPath(), "utf-8"));
-  if (!overwrite) {
-    await writeFile2(target, source, { flag: constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY });
-    return;
-  }
-  const tempPath = join2(dirname(target), `.autoresearch.md.tmp-${process.pid}-${Date.now()}`);
-  try {
-    await writeFile2(tempPath, source, { flag: constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY });
-    await rename(tempPath, target);
-  } catch (error) {
-    await rm(tempPath, { force: true });
-    throw error;
-  }
-}
-async function rejectSymlink(path) {
-  const state = await pathState(path);
-  if (state === "symlink")
-    throw new Error(`Refusing to write through symlink: ${path}`);
-}
-async function pathState(path) {
-  try {
-    const stats = await lstat(path);
-    if (stats.isSymbolicLink())
-      return "symlink";
-    if (stats.isDirectory())
-      return "directory";
-    return "file";
-  } catch (error) {
-    if (isFileNotFound(error))
-      return "missing";
-    throw error;
-  }
-}
-async function pathExists(path) {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
-}
-function isFileNotFound(error) {
-  return error instanceof Error && "code" in error && error.code === "ENOENT";
-}
-
 // src/commands/intake.ts
 var intakeHandlers = {
   "prompt-plan": async (context) => {
@@ -757,9 +657,9 @@ function buildRecommendation(state) {
 
 // src/session/store.ts
 import { closeSync, fsyncSync, openSync } from "fs";
-import { mkdir as mkdir3, open, readFile as readFile2, rename as rename2, rm as rm2 } from "fs/promises";
-import { basename, dirname as dirname2, join as join3, resolve as resolve3 } from "path";
-var DEFAULT_SESSION_BASE_DIR = resolve3(process.cwd(), ".opencode-autoresearch");
+import { mkdir as mkdir2, open, readFile, rename, rm } from "fs/promises";
+import { basename, dirname, join as join2, resolve as resolve2 } from "path";
+var DEFAULT_SESSION_BASE_DIR = resolve2(process.cwd(), ".opencode-autoresearch");
 var atomicWriteCounter = 0;
 
 class FutureSessionSchemaVersionError extends Error {
@@ -769,16 +669,16 @@ class FutureSessionSchemaVersionError extends Error {
   }
 }
 function createSessionStore(options = {}) {
-  const baseDir = resolve3(options.baseDir ?? DEFAULT_SESSION_BASE_DIR);
+  const baseDir = resolve2(options.baseDir ?? DEFAULT_SESSION_BASE_DIR);
   const now = options.now ?? (() => new Date().toISOString());
-  const sessionPath = (sessionId) => join3(baseDir, `${assertSafeSessionId(sessionId)}.json`);
+  const sessionPath = (sessionId) => join2(baseDir, `${assertSafeSessionId(sessionId)}.json`);
   const read = async (sessionId) => {
     const path = sessionPath(sessionId);
     let raw;
     try {
-      raw = await readFile2(path, "utf-8");
+      raw = await readFile(path, "utf-8");
     } catch (error) {
-      if (isFileNotFound2(error))
+      if (isFileNotFound(error))
         return { status: "missing", path };
       throw error;
     }
@@ -852,7 +752,7 @@ function assertSafeSessionId(sessionId) {
 }
 async function quarantineCorruptFile(path, reason, now) {
   const corruptPath = await nextCorruptPath(path, now());
-  await rename2(path, corruptPath);
+  await rename(path, corruptPath);
   return {
     status: "recovered",
     path,
@@ -872,19 +772,19 @@ async function nextCorruptPath(path, timestamp) {
 }
 async function fileExists(path) {
   try {
-    await readFile2(path);
+    await readFile(path);
     return true;
   } catch (error) {
-    if (isFileNotFound2(error))
+    if (isFileNotFound(error))
       return false;
     throw error;
   }
 }
 async function writeJsonAtomically(path, state) {
-  await mkdir3(dirname2(path), { recursive: true });
+  await mkdir2(dirname(path), { recursive: true });
   const content = `${JSON.stringify(state, null, 2)}
 `;
-  const tempPath = join3(dirname2(path), `.${basename(path)}.tmp-${process.pid}-${Date.now()}-${atomicWriteCounter++}`);
+  const tempPath = join2(dirname(path), `.${basename(path)}.tmp-${process.pid}-${Date.now()}-${atomicWriteCounter++}`);
   let closed = false;
   const handle = await open(tempPath, "w", 384);
   try {
@@ -892,15 +792,15 @@ async function writeJsonAtomically(path, state) {
     await handle.sync();
     await handle.close();
     closed = true;
-    await rename2(tempPath, path);
-    fsyncDirectory(dirname2(path));
+    await rename(tempPath, path);
+    fsyncDirectory(dirname(path));
   } catch (error) {
     if (!closed) {
       try {
         await handle.close();
       } catch {}
     }
-    await rm2(tempPath, { force: true });
+    await rm(tempPath, { force: true });
     throw error;
   }
 }
@@ -928,7 +828,7 @@ function upsertBySourceExperiment(items, item) {
     return [...items, item];
   return [...items.slice(0, index), item, ...items.slice(index + 1)];
 }
-function isFileNotFound2(error) {
+function isFileNotFound(error) {
   return isErrorWithCode(error) && error.code === "ENOENT";
 }
 function isErrorWithCode(error) {
@@ -940,7 +840,6 @@ function errorMessage(error) {
 
 // src/cli.ts
 var COMMANDS = [
-  "install-agent",
   "prompt-plan",
   "setup-plan",
   "onboarding-packet",
@@ -954,7 +853,6 @@ var COMMANDS = [
   "finalize-preview"
 ];
 var commandHandlers = {
-  "install-agent": installAgentCommand,
   ...intakeHandlers,
   ...recommendHandlers,
   ...loopHandlers,
@@ -1064,10 +962,9 @@ function helpText() {
   return `opencode-autoresearch
 
 Usage:
-  bun dist/cli.js <command> [options]
+  opencode-autoresearch <command> [options]
 
 Commands:
-  install-agent       Copy packaged agent/autoresearch.md into an opencode config directory.
   prompt-plan         Record the goal and constraints in plugin-owned session state.
   setup-plan          Record setup checklist items for the session.
   onboarding-packet   Print the current session summary.
@@ -1083,8 +980,6 @@ Commands:
 Options:
   --state-dir <dir>    Use a plugin-owned state directory instead of the default .opencode-autoresearch path.
   --session-id <id>    Select a safe session id for state path resolution. Defaults to "default".
-  --config-dir <dir>   Required for install-agent; destination root for agent/autoresearch.md.
-  --force              Allow install-agent to overwrite an existing agent file.
   --help               Show this help.
 
 export-dashboard writes a static snapshot only; it does not start a browser UI or live server.

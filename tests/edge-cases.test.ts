@@ -4,15 +4,13 @@ import { tmpdir } from "os"
 import { join, resolve } from "path"
 import { pathToFileURL } from "url"
 import { applyCanonicalRuntimeListPrefix, normalizeVisibleAgentName, sortFixtureNames } from "../src/compat/agent-ordering"
-import { copyAutoresearchAgent, simulatePluginLoader } from "../src/compat/plugin-loader-fixture"
+import { simulatePluginLoader } from "../src/compat/plugin-loader-fixture"
 import { PLUGIN_ID } from "../src/index"
 import { SESSION_SCHEMA_VERSION } from "../src/session/schema"
 import { createSessionStore } from "../src/session/store"
-import { AUTORESEARCH_SORT_PREFIX, AUTORESEARCH_VISIBLE_NAME } from "../src/compat/zero-width"
 
 const repoRoot = resolve(import.meta.dir, "..")
 const cliPath = join(repoRoot, "src", "cli.ts")
-const packagedAgentPath = join(repoRoot, "agent", "autoresearch.md")
 
 async function runCli(args: string[], options: { cwd?: string } = {}) {
   const proc = Bun.spawn(["bun", cliPath, ...args], {
@@ -31,12 +29,6 @@ async function runCli(args: string[], options: { cwd?: string } = {}) {
 
 function parseJson(stdout: string) {
   return JSON.parse(stdout)
-}
-
-function frontmatterName(content: string) {
-  const match = /^name: (.*)$/m.exec(content)
-  if (!match) throw new Error("missing frontmatter name")
-  return match[1]
 }
 
 async function expectRejects(promise: Promise<unknown>, pattern: RegExp) {
@@ -112,27 +104,6 @@ describe("Task 9 edge-case hardening", () => {
     ]
 
     expect(sortFixtureNames(partiallyEnabled).map(normalizeVisibleAgentName)).toEqual(["sisyphus", "atlas", "autoresearch"])
-  })
-
-  test("existing user-defined autoresearch agent collisions are refused unless force is explicit", async () => {
-    const configDir = tempDir("opencode-autoresearch-user-agent-")
-    const target = join(configDir, "agent", "autoresearch.md")
-    mkdirSync(join(configDir, "agent"), { recursive: true })
-    writeFileSync(target, "user-defined autoresearch", "utf-8")
-
-    const refused = await runCli(["install-agent", "--config-dir", configDir])
-
-    expect(refused.exitCode).toBe(1)
-    expect(refused.stdout).toBe("")
-    expect(refused.stderr).toBe(`Agent already exists: ${target}\nUse --force to overwrite.\n`)
-    expect(readFileSync(target, "utf-8")).toBe("user-defined autoresearch")
-
-    const forced = await runCli(["install-agent", "--config-dir", configDir, "--force"])
-
-    expect(forced.exitCode).toBe(0)
-    expect(parseJson(forced.stdout)).toEqual({ ok: true, path: target, overwritten: true })
-    expect(frontmatterName(readFileSync(packagedAgentPath, "utf-8"))).toBe(AUTORESEARCH_VISIBLE_NAME)
-    expect(frontmatterName(readFileSync(target, "utf-8"))).toBe(`${AUTORESEARCH_SORT_PREFIX}${AUTORESEARCH_VISIBLE_NAME}`)
   })
 
   test("disabled plugin entries with stale state do not activate server hooks", async () => {
@@ -222,22 +193,17 @@ describe("Task 9 edge-case hardening", () => {
     expect(state.metrics).toEqual([{ name: "score", value: 2, direction: "higher", sourceExperimentId: "exp-1" }])
   })
 
-  test("bounded package and README contracts exclude refer and preserve fallback discovery", async () => {
+  test("bounded package and README contracts exclude refer and document plugin discovery", async () => {
     const pkg = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf-8"))
     const readme = readFileSync(join(repoRoot, "README.md"), "utf-8")
-    const configDir = tempDir("opencode-autoresearch-fallback-config-")
 
-    expect(pkg.files).toEqual(["dist", "agent"])
+    expect(pkg.files).toEqual(["dist"])
     expect(pkg.files.some((entry: string) => entry.includes("refer"))).toBe(false)
+    expect(pkg.files.some((entry: string) => entry.includes("agent"))).toBe(false)
+    expect(pkg.bin).toEqual({ "opencode-autoresearch": "./dist/cli.js" })
     expect(pkg.scripts.test).toBe("bun test ./tests --path-ignore-patterns 'refer/**'")
     expect(pkg.scripts.check).toBe("bun run typecheck && bun run build && bun run test")
-    expect(readme).toContain("Package-level OpenCode agent discovery from the package alone is not asserted by this repo")
-    expect(readme).toContain("fallback `install-agent --config-dir <dir>` path is tested and works regardless")
-
-    const copied = await copyAutoresearchAgent(configDir)
-
-    expect(copied).toBe(join(configDir, "agent", "autoresearch.md"))
-    expect(frontmatterName(readFileSync(packagedAgentPath, "utf-8"))).toBe(AUTORESEARCH_VISIBLE_NAME)
-    expect(frontmatterName(readFileSync(copied, "utf-8"))).toBe(`${AUTORESEARCH_SORT_PREFIX}${AUTORESEARCH_VISIBLE_NAME}`)
+    expect(readme).toContain('"plugin": ["opencode-autoresearch"]')
+    expect(readme).toContain("Disable it by removing `opencode-autoresearch` from the `plugin` array")
   })
 })

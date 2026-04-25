@@ -1,5 +1,6 @@
+#!/usr/bin/env bun
 import { type SessionStore } from "./session/store";
-export declare const COMMANDS: readonly ["install-agent", "prompt-plan", "setup-plan", "onboarding-packet", "recommend-next", "next-experiment", "log-experiment", "doctor-session", "checks-inspect", "benchmark-lint", "export-dashboard", "finalize-preview"];
+export declare const COMMANDS: readonly ["prompt-plan", "setup-plan", "onboarding-packet", "recommend-next", "next-experiment", "log-experiment", "doctor-session", "checks-inspect", "benchmark-lint", "export-dashboard", "finalize-preview"];
 export type CommandName = (typeof COMMANDS)[number];
 export type CliOptions = Record<string, string | boolean | string[] | undefined> & {
     _: string[];
@@ -21,7 +22,7 @@ export declare function optionString(options: CliOptions, key: string): string |
 export declare function optionBoolean(options: CliOptions, key: string): boolean;
 export declare function stateContract(context: CommandContext, family: string, extra?: CommandResult): {
     ok: boolean;
-    command: "doctor-session" | "checks-inspect" | "benchmark-lint" | "install-agent" | "prompt-plan" | "setup-plan" | "onboarding-packet" | "recommend-next" | "next-experiment" | "log-experiment" | "export-dashboard" | "finalize-preview";
+    command: "doctor-session" | "checks-inspect" | "benchmark-lint" | "prompt-plan" | "setup-plan" | "onboarding-packet" | "recommend-next" | "next-experiment" | "log-experiment" | "export-dashboard" | "finalize-preview";
     family: string;
     sessionId: string;
     stateDir: string;

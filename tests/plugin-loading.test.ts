@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { PLUGIN_ID, pluginModule } from "../src/index"
+import { AUTORESEARCH_RUNTIME_NAME, PLUGIN_ID, pluginModule } from "../src/index"
+import { AUTORESEARCH_VISIBLE_NAME } from "../src/compat/zero-width"
 import { simulatePluginLoader, validatePlugin } from "../src/compat/plugin-loader-fixture"
 
 describe("plugin loading contract", () => {
@@ -17,6 +18,26 @@ describe("plugin loading contract", () => {
         id: PLUGIN_ID,
         server: pluginModule.server,
       },
+    })
+  })
+
+  test("config hook injects autoresearch as a strong main-visible research agent", async () => {
+    const hooks = await pluginModule.server({ directory: process.cwd(), worktree: process.cwd(), serverUrl: new URL("http://localhost") })
+    const config: { agent?: Record<string, Record<string, unknown>> } = {}
+
+    await (hooks as { config: (input: typeof config) => Promise<void> }).config(config)
+
+    expect(config.agent?.[AUTORESEARCH_RUNTIME_NAME]).toMatchObject({
+      name: AUTORESEARCH_RUNTIME_NAME,
+      mode: "all",
+      description: "Strong autonomous research agent for bounded, evidence-backed OpenCode research loops.",
+    })
+    expect(config.agent?.[AUTORESEARCH_RUNTIME_NAME]?.prompt).toContain("strong research agent")
+    expect(config.agent?.[AUTORESEARCH_RUNTIME_NAME]?.prompt).toContain("opencode-autoresearch")
+    expect(config.agent?.[AUTORESEARCH_VISIBLE_NAME]).toMatchObject({
+      name: AUTORESEARCH_RUNTIME_NAME,
+      mode: "all",
+      hidden: true,
     })
   })
 

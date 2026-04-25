@@ -1,16 +1,16 @@
 # Opencode Autoresearch
 
-Measured research loops for OpenCode, with a server/text-first v1 that installs one shipped agent prompt, keeps session state on disk, and exports static snapshots for review.
+Measured research loops for OpenCode, with a server/text-first v1 that injects one strong research agent through the OpenCode plugin config hook, keeps session state on disk, and exports static snapshots for review.
 
 ## Purpose
 
-Opencode Autoresearch turns a broad improvement request into a bounded loop with durable state. The shipped surface is the CLI plus `agent/autoresearch.md`, so the package stays file based and easy to inspect.
+Opencode Autoresearch turns a broad improvement request into a bounded loop with durable state. The shipped surface is the OpenCode plugin plus the `opencode-autoresearch` CLI binary.
 
 ## v1 scope
 
 * One repo local research loop at a time.
+* A plugin-injected `autoresearch` agent configured from `opencode.json`.
 * CLI commands that read and write JSON state under a plugin owned directory.
-* A shipped agent prompt that can be copied into an OpenCode config directory.
 * Static export files for review.
 * A server/text-first workflow, not an interactive app.
 
@@ -25,37 +25,41 @@ Opencode Autoresearch turns a broad improvement request into a bounded loop with
 
 ## Install in OpenCode
 
-Build the CLI, then copy the shipped agent prompt into your OpenCode config directory:
+Install the package where OpenCode can resolve npm plugins, then enable it in `opencode.json`:
 
-```bash
-bun run build
-bun dist/cli.js install-agent --config-dir ~/.config/opencode
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["opencode-autoresearch"]
+}
 ```
 
-If your OpenCode config lives somewhere else, point `--config-dir` at that root instead:
+For local development, point OpenCode at the built package directory instead:
 
-```bash
-bun dist/cli.js install-agent --config-dir <dir>
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["/absolute/path/to/opencode-autoresearch"]
+}
 ```
 
-`install-agent` installs the packaged `agent/autoresearch.md` prompt into `<dir>/agent/autoresearch.md`. The packaged source file keeps the plain `name: autoresearch` frontmatter; the installed fallback file keeps the plain `autoresearch.md` filename and writes the runtime/frontmatter `name` with the five escaped `\u200B` prefixes used for OpenCode sorting. It refuses to overwrite an existing file unless you add `--force`.
-
-The package allowlist includes `agent/`, so the shipped prompt asset is available in the package contents. Package-level OpenCode agent discovery from the package alone is not asserted by this repo; the fallback `install-agent --config-dir <dir>` path is tested and works regardless of package-level discovery behavior.
+The plugin injects an `autoresearch` agent with `mode: all`, so OpenCode can list it as a primary agent while still allowing subagent use. The package also exposes the `opencode-autoresearch` binary for durable state commands.
 
 ## Local OpenCode config example
 
-If your local OpenCode config directory is `~/.config/opencode`, the install flow looks like this:
+If your local OpenCode config directory is `~/.config/opencode`, add this entry to `~/.config/opencode/opencode.json`:
 
-```bash
-mkdir -p ~/.config/opencode/agent
-bun dist/cli.js install-agent --config-dir ~/.config/opencode
+```json
+{
+  "plugin": ["opencode-autoresearch"]
+}
 ```
 
-That produces `~/.config/opencode/agent/autoresearch.md` as the installed prompt file.
+Disable it by removing `opencode-autoresearch` from the `plugin` array.
 
 ## Enable and disable
 
-The supported enable path is to install the agent prompt into the OpenCode config directory. The supported disable path is to remove the installed `agent/autoresearch.md` file from that directory.
+The supported enable path is the OpenCode `plugin` array. The supported disable path is removing `opencode-autoresearch` from that array.
 
 The package itself stays read only here. This repo does not advertise a browser toggle, a live service toggle, or any broader OpenCode config rewrite.
 
@@ -79,7 +83,7 @@ That order is handled with five escaped zero width space prefixes in runtime and
 
 ## Zero width ordering
 
-The runtime and list display order uses five escaped zero width space prefixes only for sorting. The visible names stay plain. The packaged source prompt name stays `autoresearch`, while the supported fallback install writes the prefixed frontmatter name into `<dir>/agent/autoresearch.md` so OpenCode can sort by the configured name without changing the filename.
+The runtime and list display order uses five escaped zero width space prefixes only for sorting. The plugin injects the prefixed runtime `name` so OpenCode can sort by the configured name while the visible agent remains `autoresearch`.
 
 ## Command reference
 
@@ -87,7 +91,6 @@ All commands print JSON.
 
 | Command | What it does |
 | --- | --- |
-| `install-agent` | Install `agent/autoresearch.md` into an OpenCode config directory. |
 | `prompt-plan` | Record the goal and constraints in plugin owned session state. |
 | `setup-plan` | Record setup checklist items for the session. |
 | `onboarding-packet` | Print the current session summary. |
@@ -127,7 +130,6 @@ Plain `bun test` is the full-project hardening goal, but today it can recurse in
 
 ## Troubleshooting
 
-* If `install-agent` says the agent already exists, rerun it with `--force` only when you really want to replace the file.
-* If `install-agent` refuses a symlink, point `--config-dir` at a real directory path instead.
+* If the agent does not appear, confirm `opencode-autoresearch` is present in the active OpenCode `plugin` array.
 * If state does not appear, check that the command received a writable `--state-dir` or let it use the default `.opencode-autoresearch/` path.
 * If you are looking at `refer/*`, remember it is read only reference material. It is not packaged.

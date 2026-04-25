@@ -2,7 +2,7 @@ import { type CommandContext } from "../cli";
 export declare const exportHandlers: {
     "export-dashboard": (context: CommandContext) => Promise<{
         ok: boolean;
-        command: "doctor-session" | "checks-inspect" | "benchmark-lint" | "install-agent" | "prompt-plan" | "setup-plan" | "onboarding-packet" | "recommend-next" | "next-experiment" | "log-experiment" | "export-dashboard" | "finalize-preview";
+        command: "doctor-session" | "checks-inspect" | "benchmark-lint" | "prompt-plan" | "setup-plan" | "onboarding-packet" | "recommend-next" | "next-experiment" | "log-experiment" | "export-dashboard" | "finalize-preview";
         family: string;
         sessionId: string;
         stateDir: string;
@@ -10,7 +10,7 @@ export declare const exportHandlers: {
     }>;
     "finalize-preview": (context: CommandContext) => Promise<{
         ok: boolean;
-        command: "doctor-session" | "checks-inspect" | "benchmark-lint" | "install-agent" | "prompt-plan" | "setup-plan" | "onboarding-packet" | "recommend-next" | "next-experiment" | "log-experiment" | "export-dashboard" | "finalize-preview";
+        command: "doctor-session" | "checks-inspect" | "benchmark-lint" | "prompt-plan" | "setup-plan" | "onboarding-packet" | "recommend-next" | "next-experiment" | "log-experiment" | "export-dashboard" | "finalize-preview";
         family: string;
         sessionId: string;
         stateDir: string;

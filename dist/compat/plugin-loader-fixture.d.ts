@@ -35,4 +35,3 @@ export declare function validatePlugin(module: unknown, expectedId?: string): {
     error: string;
 };
 export declare function simulatePluginLoader(requests: LoadRequest[]): Promise<LoadResult[]>;
-export declare function copyAutoresearchAgent(configDir: string): Promise<string>;

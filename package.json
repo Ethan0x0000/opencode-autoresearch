@@ -6,9 +6,11 @@
   "types": "./dist/index.d.ts",
   "type": "module",
   "files": [
-    "dist",
-    "agent"
+    "dist"
   ],
+  "bin": {
+    "opencode-autoresearch": "./dist/cli.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

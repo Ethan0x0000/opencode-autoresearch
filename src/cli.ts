@@ -1,13 +1,13 @@
+#!/usr/bin/env bun
+
 import { doctorHandlers } from "./commands/doctor"
 import { exportHandlers } from "./commands/export"
-import { installAgentCommand } from "./commands/install-agent"
 import { intakeHandlers } from "./commands/intake"
 import { loopHandlers } from "./commands/loop"
 import { recommendHandlers } from "./commands/recommend"
 import { createSessionStore, type SessionStore } from "./session/store"
 
 export const COMMANDS = [
-  "install-agent",
   "prompt-plan",
   "setup-plan",
   "onboarding-packet",
@@ -44,7 +44,6 @@ type ParsedCli = {
 }
 
 const commandHandlers = {
-  "install-agent": installAgentCommand,
   ...intakeHandlers,
   ...recommendHandlers,
   ...loopHandlers,
@@ -159,10 +158,9 @@ function helpText() {
   return `opencode-autoresearch
 
 Usage:
-  bun dist/cli.js <command> [options]
+  opencode-autoresearch <command> [options]
 
 Commands:
-  install-agent       Copy packaged agent/autoresearch.md into an opencode config directory.
   prompt-plan         Record the goal and constraints in plugin-owned session state.
   setup-plan          Record setup checklist items for the session.
   onboarding-packet   Print the current session summary.
@@ -178,8 +176,6 @@ Commands:
 Options:
   --state-dir <dir>    Use a plugin-owned state directory instead of the default .opencode-autoresearch path.
   --session-id <id>    Select a safe session id for state path resolution. Defaults to "default".
-  --config-dir <dir>   Required for install-agent; destination root for agent/autoresearch.md.
-  --force              Allow install-agent to overwrite an existing agent file.
   --help               Show this help.
 
 export-dashboard writes a static snapshot only; it does not start a browser UI or live server.
